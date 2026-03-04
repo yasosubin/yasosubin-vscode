@@ -13,5 +13,5 @@ This extension allows you to upload code snippets to Yasosu Bin directly from VS
 
 </p>
 <p align="center" width="100%">
-<video src="https://github.com/yasosubin/yasosubin-vscode/raw/HEAD/readme-media/demo.mp4" autoplay loop muted></video>
+<img alt="Extension demo" src="https://github.com/yasosubin/yasosubin-vscode/raw/HEAD/readme-media/demo.avif" width="100%"/>
 </p>
