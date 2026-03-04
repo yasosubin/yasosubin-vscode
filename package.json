@@ -1,0 +1,211 @@
+{
+    "publisher": "yasosubin",
+    "name": "yasosubin-vscode",
+    "displayName": "Yasosu Bin",
+    "version": "1.0.0",
+    "description": "Share code on Yasosu Bin - The pastebin for the modern web",
+    "author": {
+        "name": "Dubzer",
+        "url": "https://github.com/Dubzer"
+    },
+    "license": "MIT",
+    "browser": "./dist/extension.js",
+    "extensionKind": ["ui"],
+    "homepage": "https://yaso.su",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/yasosubin/yasosubin-vscode.git"
+    },
+    "bugs": {
+        "url": "https://github.com/yasosubin/yasosubin-vscode/issues"
+    },
+    "galleryBanner": {
+        "color": "#fff",
+        "theme": "light"
+    },
+    "keywords": [
+        "yasosu",
+        "pastebin",
+        "snippets",
+        "share",
+        "code sharing"
+    ],
+    "categories": [
+        "Other"
+    ],
+    "icon": "images/icon.png",
+    "engines": {
+        "vscode": "^1.105.0"
+    },
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "contributes": {
+        "authentication": [
+            {
+                "id": "yasosu",
+                "label": "Yasosu"
+            }
+        ],
+        "commands": [
+            {
+                "command": "yasosu.signIn",
+                "title": "Sign in",
+                "category": "Yasosu",
+                "enablement": "!yasosu.signedIn"
+            },
+            {
+                "command": "yasosu.openTokenPage",
+                "title": "Open Token Creation Page",
+                "category": "Yasosu",
+                "enablement": "false"
+            },
+            {
+                "command": "yasosu.openWalkthrough",
+                "title": "Open Walkthrough",
+                "category": "Yasosu"
+            },
+            {
+                "command": "yasosu.createPasteFromSelection",
+                "title": "Yasosu: Create Paste from Selection",
+                "category": "Yasosu",
+                "enablement": "yasosu.signedIn && editorHasSelection && editorTextFocus"
+            },
+            {
+                "command": "yasosu.viewMyPastes",
+                "title": "View My Pastes",
+                "category": "Yasosu",
+                "enablement": "yasosu.signedIn"
+            }
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "command": "yasosu.createPasteFromSelection",
+                    "group": "z_commands",
+                    "when": "yasosu.signedIn && editorHasSelection && editorTextFocus"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "yasosu.openTokenPage",
+                    "when": "false"
+                },
+                {
+                    "command": "yasosu.createPasteFromSelection",
+                    "when": "yasosu.signedIn && editorHasSelection && editorTextFocus"
+                },
+                {
+                    "command": "yasosu.viewMyPastes",
+                    "when": "yasosu.signedIn"
+                }
+            ]
+        },
+        "configuration": {
+            "title": "Yasosu",
+            "properties": {
+                "yasosu.overrideBasePath": {
+                    "description": "Yasosu Web App URL",
+                    "default": "https://yaso.su",
+                    "type": "string"
+                },
+                "yasosu.postCreateAction": {
+                    "description": "What to do after paste creation",
+                    "enumItemLabels": [
+                        "Open the paste",
+                        "Copy URL to the clipboard",
+                        "Do nothing"
+                    ],
+                    "type": "string",
+                    "enum": [
+                        "open",
+                        "copy",
+                        "none"
+                    ],
+                    "default": "copy"
+                },
+                "yasosu.overrideApiBasePath": {
+                    "markdownDescription": "URL for the backend is usually derived from the [Web App URL](#yasosu.overrideBasePath), but you can override it if needed",
+                    "default": "",
+                    "type": "string"
+                },
+                "yasosu.expirationTime": {
+                    "description": "Default expiration time used for pastes",
+                    "default": 10080,
+                    "type": "number",
+                    "enum": [-1, 10, 60, 1440, 10080, 20160, 43800, 262800, 525600],
+                    "enumItemLabels": [
+                        "Never",
+                        "10 Minutes",
+                        "1 Hour",
+                        "1 Day",
+                        "1 Week",
+                        "2 Weeks",
+                        "1 Month",
+                        "6 Months",
+                        "1 Year"
+                    ]
+                }
+            }
+        },
+        "walkthroughs": [
+            {
+                "id": "getStarted",
+                "title": "Get Started with Yasosu",
+                "description": "Connect VS Code to your Yasosu account",
+                "steps": [
+                    {
+                        "id": "getToken",
+                        "title": "Create an API token",
+                        "description": "Generate a personal API token on the Yasosu website\n[Open Token Page](command:yasosu.openTokenPage)",
+                        "media": {
+                            "image": "images/walkthrough1.png",
+                            "altText": "Yasosu Token Generation page screenshot"
+                        },
+                        "completionEvents": [
+                            "onCommand:yasosu.openTokenPage",
+                            "onContext:yasosu.signedIn"
+                        ]
+                    },
+                    {
+                        "id": "signIn",
+                        "title": "Add your token to VS Code",
+                        "description": "Paste your token here to authenticate\n[Open Sign In](command:yasosu.signIn)",
+                        "completionEvents": [
+                            "onContext:yasosu.signedIn"
+                        ],
+                        "media": {
+                            "image": "images/walkthrough2.png",
+                            "altText": "Yasosu Create Token page screenshot"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "scripts": {
+        "build": "vite build",
+        "watch": "vite build --watch",
+        "prod": "vite build --mode production",
+        "typegen": "openapi-ts",
+        "lint": "eslint",
+        "lint:fix": "eslint --fix",
+        "typecheck": "tsc --noEmit",
+        "vscode:prepublish": "pnpm run prod"
+    },
+    "devDependencies": {
+        "@antfu/eslint-config": "^7.6.1",
+        "@hey-api/openapi-ts": "^0.93.1",
+        "@types/node": "^25.3.2",
+        "@types/vscode": "^1.105.0",
+        "eslint": "9.39.3",
+        "typescript": "~5.9.3",
+        "valibot": "^1.2.0",
+        "vite": "^8.0.0-beta.13"
+    },
+    "pnpm": {
+        "overrides": {
+            "vite": "^8.0.0-beta.13"
+        }
+    }
+}

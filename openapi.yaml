@@ -1,0 +1,763 @@
+openapi: 3.1.1
+info:
+  title: Yasosu Public API
+  description: >-
+    # Documentation
+
+    ## Getting started
+
+    > [!caution] This API is intended for managing your own account<br> **You
+    should never publish pastes on behalf of other people using your personal
+    credentials!**
+
+    #### Obtaining a token
+
+    Your user will have to log into their account on https://yaso.su, then
+    create a token in the Apps section of their profile
+
+    To simplify that process, you can craft a special link with a pre-filled
+    token name<br> This page will ask them to log in if they aren't already
+
+    ``` https://yaso.su/profile/tokens/new#name=YourApp ```
+
+    > [!tip] The length of the name should be under 40 characters
+
+    After that, the user can copy the generated token and paste it into your
+    app. The token will start with `ys-pub-...`
+
+    #### Using the token
+
+    Yasosu is using a standard Bearer token authentication scheme<br> You should
+    include the token in the `Authorization` header of your requests like this:
+
+    ``` Authorization: Bearer ys-pub-... ```
+
+    ## Error handling
+
+    This section describes a bulletproof error response handling strategy
+
+    1. **Check the `Content-Type` header**<br> If it doesn't contain `"json"`,
+    the backend is probably down
+
+    2. **Check if the response status code is 429**<br> If there's a
+    `Retry-After` header, wait for the specified number of seconds, then retry
+    the request
+
+    3. **Check if the response status is in 200-299 range**
+        1. If it is, then the request was successful, and you can parse the body as expected!
+        2. If not, try parsing the body as the `ProblemDetailsResponse​` model. If the parsing fails, the backend is also probably down
+
+    ### Displaying `ProblemDetailsResponse` to the user
+
+    The backend is using this model for all error responses, even for validation
+    errors
+
+    Example:
+
+    ```json
+
+    {
+      "status": 400,
+      "title": "There's a problem in your request",
+      "errors": [
+        {
+          "field": "codeLanguage",
+          "message": "Specified language is not supported"
+        }
+      ]
+    }
+
+    ```
+
+    **You should prefer displaying the `message` from the `errors` array**<br>
+    If there's no `errors` array, you can display the `title` field to the user
+
+    > [!TIP] `"field"` may hint near which form field to display the error
+
+    ## Versioning
+
+    Yasosu will try to keep the API backward compatible as much as possible.<br>
+    **To ensure that Yasosu knows which version of the API your app is using, it
+    is strongly recommended to include the following header in your requests:**
+
+    ``` API-Version: 1 ```
+
+    Subscribe to the [Telegram channel](https://t.me/yaso_updates) to stay up to
+    date with any changes in the API.<br> Breaking changes will also be
+    documented on this page
+  version: '1'
+servers:
+  - url: https://api.yaso.su
+    description: API for https://yaso.su
+  - url: https://api.log.rw
+    description: API for https://log.rw
+paths:
+  /pub/user/limits:
+    get:
+      tags:
+        - Profile
+      summary: Get Public API limits
+      description: Returns the limits of Public API usage for the current user
+      operationId: GetLimits
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/LimitsResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LimitsResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/LimitsResponse'
+        '429':
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Number of seconds to wait before making a new request
+              required: true
+              schema:
+                minimum: 0
+                type: integer
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+  /pub/user/records:
+    get:
+      tags:
+        - Profile
+      summary: Get pastes list
+      description: Returns a list of pastes that belong to the current user
+      operationId: GetPastes
+      parameters:
+        - name: offset
+          in: query
+          description: Number of pastes to skip
+          schema:
+            maximum: 65535
+            minimum: 0
+            type: integer
+            format: uint16
+        - name: limit
+          in: query
+          description: Maximum number of pastes to return
+          schema:
+            maximum: 40
+            minimum: 1
+            type: integer
+            format: uint16
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/PastesListResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PastesListResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/PastesListResponse'
+        '429':
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Number of seconds to wait before making a new request
+              required: true
+              schema:
+                minimum: 0
+                type: integer
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+  /pub/user/profile:
+    get:
+      tags:
+        - Profile
+      summary: Get profile
+      description: Returns the profile of the current user
+      operationId: GetProfile
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/GetProfileResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProfileResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/GetProfileResponse'
+        '429':
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Number of seconds to wait before making a new request
+              required: true
+              schema:
+                minimum: 0
+                type: integer
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+  /pub/records:
+    post:
+      tags:
+        - Pastes
+      summary: Publish new paste
+      description: >-
+        Creates a new paste for the current user
+
+        ### URL Shortening
+
+        Provide a valid URL in the `content` field to create a shortened URL
+        paste:
+
+        - It will redirect the user to the target URL when accessed from the
+        browser
+
+        - The `contentType` will be set to `url`
+
+        > [!note]
+
+        A valid URL is defined by the [WHATWG URL
+        Specification](https://url.spec.whatwg.org/)<br />
+
+        Only **HTTP** and **HTTPS** protocols are allowed
+      operationId: CreatePaste
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePasteRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/CreatePasteRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/CreatePasteRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/CreatePasteResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePasteResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/CreatePasteResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsResponse'
+              examples:
+                urlAlreadyExists:
+                  summary: URL already exists
+                  value:
+                    status: 400
+                    title: There's a problem in your request
+                    errors:
+                      - field: url
+                        message: Record with specified URL already exists
+                binaryContentNotAllowed:
+                  summary: Binary content not allowed
+                  value:
+                    status: 400
+                    title: There's a problem in your request
+                    errors:
+                      - field: content
+                        message: Looks like you're trying to save binary data!
+                invalidLanguage:
+                  summary: Invalid language
+                  value:
+                    status: 400
+                    title: There's a problem in your request
+                    errors:
+                      - field: codeLanguage
+                        message: Specified language is not supported
+        '429':
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Number of seconds to wait before making a new request
+              required: true
+              schema:
+                minimum: 0
+                type: integer
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+        429 (daily limit):
+          description: Too Many Requests - daily paste limit exceeded
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsResponse'
+              examples:
+                dailyLimitExceeded:
+                  summary: Daily paste limit exceeded
+                  value:
+                    status: 429
+                    title: Daily paste limit exceeded
+                    errors:
+                      - field: null
+                        message: You have reached your daily paste limit. Query GET /pub/user/limits for
+                          quota info.
+  /pub/records/{url}:
+    delete:
+      tags:
+        - Pastes
+      summary: Delete paste
+      description: Deletes a paste that belongs to the current user
+      operationId: DeletePaste
+      parameters:
+        - name: url
+          in: path
+          required: true
+          schema:
+            maxLength: 100
+            type: string
+      responses:
+        '200':
+          description: OK
+        '429':
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Number of seconds to wait before making a new request
+              required: true
+              schema:
+                minimum: 0
+                type: integer
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+    get:
+      tags:
+        - Pastes
+      summary: Get paste
+      description: Returns a paste with the specified URL
+      operationId: GetPaste
+      parameters:
+        - name: url
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/GetPasteModel'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPasteModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/GetPasteModel'
+        '403':
+          description: Forbidden - access denied
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsResponse'
+              examples:
+                notAllowed:
+                  summary: Not allowed to view paste
+                  value:
+                    status: 403
+                    title: You are not allowed to view this paste
+        '404':
+          description: Bad request - paste not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetailsResponse'
+              examples:
+                pasteNotFound:
+                  summary: Paste not found
+                  value:
+                    status: 404
+                    title: There's a problem in your request
+                    errors:
+                      - field: url
+                        message: Paste with this URL does not exist
+        '429':
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Number of seconds to wait before making a new request
+              required: true
+              schema:
+                minimum: 0
+                type: integer
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+    patch:
+      tags:
+        - Pastes
+      summary: Update paste
+      description: >-
+        Updates a paste that belongs to the current user. Only pastes with
+        `contentType=text` can be updated.
+
+        At least one field must be not null for a successful response
+      operationId: UpdatePaste
+      parameters:
+        - name: url
+          in: path
+          required: true
+          schema:
+            maxLength: 100
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePasteRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePasteRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/UpdatePasteRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/CreatePasteResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePasteResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/CreatePasteResponse'
+        '429':
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Number of seconds to wait before making a new request
+              required: true
+              schema:
+                minimum: 0
+                type: integer
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+components:
+  schemas:
+    ContentType:
+      enum:
+        - text
+        - url
+      x-enum-descriptions:
+        text: Content is treated as text
+        url: Paste will redirect the user to the target URL when accessed from the
+          browser
+    CreatePasteRequest:
+      required:
+        - content
+      type: object
+      properties:
+        url:
+          maxLength: 32
+          minLength: 5
+          pattern: ^[a-zA-Z|\d]+$
+          type:
+            - 'null'
+            - string
+          description: >-
+            The URL of the paste, which can be used to access it.
+
+            Will be generated if not specified. Must not be used by existing
+            paste
+        expirationTime:
+          type:
+            - 'null'
+            - integer
+          description: Expiration time in seconds. If not specified, paste will not expire
+          format: int32
+        codeLanguage:
+          maxLength: 30
+          minLength: 0
+          pattern: ^[a-zA-Z\d#+-]+$
+          type:
+            - 'null'
+            - string
+          description: Optional code language for syntax highlighting
+        content:
+          maxLength: 524288
+          minLength: 0
+          type: string
+          description: >-
+            Content of the paste. Can be plain text or a valid URL for URL
+            shortening.
+
+            When providing a URL, it will be automatically detected and treated
+            as a shortened URL paste.
+
+            > [!note]
+
+            The length of the paste is counted by the number of [UTF-16 code
+            units](https://en.wikipedia.org/wiki/UTF-16#Description)
+    CreatePasteResponse:
+      required:
+        - url
+        - contentType
+      type: object
+      properties:
+        url:
+          type: string
+        contentType:
+          $ref: '#/components/schemas/ContentType'
+        textContentType:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/TextContentType'
+    DetailedErrorItem:
+      required:
+        - message
+      type: object
+      properties:
+        field:
+          type: string
+          description: The name of the field that caused the error
+          example: pasteId
+        message:
+          type: string
+          description: Human-readable error message describing the issue
+          example: The paste ID must be a valid string
+      description: Detailed error information for a specific field or validation issue
+    GetPasteModel:
+      required:
+        - url
+        - content
+        - contentType
+        - createdAt
+        - permissions
+      type: object
+      properties:
+        url:
+          type: string
+          description: The URL of the paste, which can be used to access it
+        content:
+          type: string
+        contentType:
+          $ref: '#/components/schemas/ContentType'
+        createdAt:
+          type: string
+          format: date-time
+        textContentType:
+          oneOf:
+            - type: 'null'
+            - description: |-
+                Available when `contentType` is `text`.
+                Specifies the type of the text content
+              $ref: '#/components/schemas/TextContentType'
+        codeLanguage:
+          type:
+            - 'null'
+            - string
+          description: Optional code language for syntax highlighting
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PasteUserPermission'
+          description: Permissions of the current user for this paste
+    GetProfileResponse:
+      required:
+        - sessionType
+        - role
+      type: object
+      properties:
+        displayName:
+          type:
+            - 'null'
+            - string
+          description: Display name of the user, based on the linked auth services
+        sessionType:
+          description: The type of session that was used to make the current request
+          $ref: '#/components/schemas/SessionType'
+        role:
+          $ref: '#/components/schemas/UserRole'
+      description: The profile of the current user
+    LimitsResponse:
+      required:
+        - pastesLimit
+      type: object
+      properties:
+        pastesLimit:
+          description: The number of pastes the user can create via the public API
+          $ref: '#/components/schemas/PastesLimit'
+    PastesLimit:
+      type: object
+      properties:
+        limit:
+          type: integer
+          description: The total number of pastes the user can create via the public API
+            in the current window
+          format: int32
+        used:
+          type: integer
+          description: The number of pastes the user has already created via the public
+            API in the current window
+          format: int32
+        resetsAt:
+          type: string
+          description: The time when the current window resets and the int
+            PastesLimit.Used count goes back to 0
+          format: date-time
+    PastesListResponse:
+      required:
+        - pastes
+        - hasMore
+      type: object
+      properties:
+        pastes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GetPasteModel'
+        hasMore:
+          type: boolean
+          description: Indicates whether there are more pastes to load after the ones
+            included in this response
+    PasteUserPermission:
+      enum:
+        - edit
+        - delete
+    ProblemDetailsResponse:
+      required:
+        - status
+        - title
+      type: object
+      properties:
+        status:
+          type: integer
+          description: The HTTP status code for this occurrence of the problem
+          format: int32
+          example: 400
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type. Should only be
+            displayed to users when the `errors` field is not present
+          example: There's a problem in your request
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/DetailedErrorItem'
+          description: Optional array of detailed error items with field-specific
+            information. Should be preferred for displaying to users
+      description: Problem details response
+    RateLimitError:
+      required:
+        - title
+        - status
+        - retryAfter
+      type: object
+      properties:
+        status:
+          const: '429'
+          type: integer
+          example: 429
+        title:
+          const: You have exceeded the rate limit. Please try again later.
+          type: string
+        retryAfter:
+          minimum: 0
+          type: integer
+          description: Number of seconds to wait before making a new request
+          format: int32
+          example: 5
+      description: |
+        Rate limit exceeded error response following Problem Details format
+        > [!tip]
+        > All endpoints may return this response
+    SessionType:
+      enum:
+        - web
+        - publicApi
+    TextContentType:
+      enum:
+        - plainText
+        - code
+        - markdown
+        - null
+      x-enum-descriptions:
+        plainText: When the `codeLanguage` field is null
+        code: When the `codeLanguage` field is not null and not `"markdown"`
+        markdown: When the `codeLanguage` field is `"markdown"`, `"md"`, `"mkdown"`,
+          `"mkd"`
+    UpdatePasteRequest:
+      type: object
+      properties:
+        url:
+          maxLength: 32
+          minLength: 5
+          pattern: ^[a-zA-Z|\d]+$
+          type:
+            - 'null'
+            - string
+          description: The URL of the paste, which can be used to access it
+        codeLanguage:
+          maxLength: 100
+          minLength: 0
+          type:
+            - 'null'
+            - string
+          description: Optional code language for syntax highlighting
+        content:
+          maxLength: 524288
+          minLength: 0
+          type:
+            - 'null'
+            - string
+          description: >-
+            Content of the paste. Can be plain text or a valid URL for URL
+            shortening.
+
+            > [!note]
+
+            The length of the paste is counted by the number of [UTF-16 code
+            units](https://en.wikipedia.org/wiki/UTF-16#Description)
+    UserRole:
+      enum:
+        - guest
+        - authorized
+        - admin
+        - banned
+  securitySchemes:
+    BearerAuth:
+      type: http
+      description: Auth using ys-pub-* tokens
+      scheme: bearer
+security:
+  - BearerAuth: []
+tags:
+  - name: Pastes
+    description: Pastes operations
+  - name: Profile
+    description: User profile operations
