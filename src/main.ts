@@ -6,7 +6,7 @@ import { getApiBaseUrl, getProfilePastesUrl, getTokenPromptUrl } from './config'
 
 async function updateSignedInContext() {
     const session = await vscode.authentication.getSession(PROVIDER_ID, [], { createIfNone: false, silent: true });
-    await vscode.commands.executeCommand('setContext', 'yasosu.signedIn', !!session);
+    await vscode.commands.executeCommand('setContext', 'yasosubin.signedIn', !!session);
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -47,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
             provider,
             { supportsMultipleAccounts: false }
         ),
-        vscode.commands.registerCommand('yasosu.signIn', async () => {
+        vscode.commands.registerCommand('yasosubin.signIn', async () => {
             const existing = await vscode.authentication.getSession(PROVIDER_ID, [], { silent: true });
             if (existing) {
                 vscode.window.showInformationMessage(`You're already signed-in!`);
@@ -61,20 +61,20 @@ export function activate(context: vscode.ExtensionContext) {
                 console.error(e);
             }
         }),
-        vscode.commands.registerCommand('yasosu.openTokenPage', () => {
+        vscode.commands.registerCommand('yasosubin.openTokenPage', () => {
             vscode.env.openExternal(vscode.Uri.parse(getTokenPromptUrl(), true));
         }),
-        vscode.commands.registerCommand('yasosu.openWalkthrough', () => {
+        vscode.commands.registerCommand('yasosubin.openWalkthrough', () => {
             vscode.commands.executeCommand(
                 'workbench.action.openWalkthrough',
                 'yasosubin.yasosubin-vscode#getStarted',
                 false
             );
         }),
-        vscode.commands.registerCommand('yasosu.viewMyPastes', () => {
+        vscode.commands.registerCommand('yasosubin.viewMyPastes', () => {
             vscode.env.openExternal(vscode.Uri.parse(getProfilePastesUrl(), true));
         }),
-        vscode.commands.registerTextEditorCommand('yasosu.createPasteFromSelection', createPasteFromSelectionCommand),
+        vscode.commands.registerTextEditorCommand('yasosubin.createPasteFromSelection', createPasteFromSelectionCommand),
         provider
     );
 }

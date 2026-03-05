@@ -5,7 +5,7 @@ import { getProfile } from '../client';
 export const PROVIDER_ID = 'yasosu';
 export const PROVIDER_LABEL = 'Yasosu';
 
-const SESSION_KEY = 'yasosu.session';
+const SESSION_KEY = 'yasosubin.session';
 
 type StoredSession = {
     id: string;
@@ -65,7 +65,7 @@ export class YasosuAuthProvider implements vscode.AuthenticationProvider, vscode
     ): Promise<vscode.AuthenticationSession> {
         const token = await vscode.window.showInputBox({
             title: 'Sign in to Yasosu',
-            prompt: `Paste your Yasosu API token. [Create a token](command:yasosu.openTokenPage)`,
+            prompt: `Paste your Yasosu API token. [Create a token](command:yasosubin.openTokenPage)`,
             placeHolder: 'ys-pub-✲✲✲',
             password: true,
             ignoreFocusOut: true,

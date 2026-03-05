@@ -33,6 +33,7 @@
     "categories": [
         "Other"
     ],
+    "main": "./dist/extension.js",
     "icon": "images/icon.png",
     "engines": {
         "vscode": "^1.105.0"
@@ -49,67 +50,67 @@
         ],
         "commands": [
             {
-                "command": "yasosu.signIn",
+                "command": "yasosubin.signIn",
                 "title": "Sign in",
                 "category": "Yasosu",
-                "enablement": "!yasosu.signedIn"
+                "enablement": "!yasosubin.signedIn"
             },
             {
-                "command": "yasosu.openTokenPage",
+                "command": "yasosubin.openTokenPage",
                 "title": "Open Token Creation Page",
                 "category": "Yasosu",
                 "enablement": "false"
             },
             {
-                "command": "yasosu.openWalkthrough",
+                "command": "yasosubin.openWalkthrough",
                 "title": "Open Walkthrough",
                 "category": "Yasosu"
             },
             {
-                "command": "yasosu.createPasteFromSelection",
+                "command": "yasosubin.createPasteFromSelection",
                 "title": "Yasosu: Create Paste from Selection",
                 "category": "Yasosu",
-                "enablement": "yasosu.signedIn && editorHasSelection && editorTextFocus"
+                "enablement": "yasosubin.signedIn && editorHasSelection && editorTextFocus"
             },
             {
-                "command": "yasosu.viewMyPastes",
+                "command": "yasosubin.viewMyPastes",
                 "title": "View My Pastes",
                 "category": "Yasosu",
-                "enablement": "yasosu.signedIn"
+                "enablement": "yasosubin.signedIn"
             }
         ],
         "menus": {
             "editor/context": [
                 {
-                    "command": "yasosu.createPasteFromSelection",
+                    "command": "yasosubin.createPasteFromSelection",
                     "group": "z_commands",
-                    "when": "yasosu.signedIn && editorHasSelection && editorTextFocus"
+                    "when": "yasosubin.signedIn && editorHasSelection && editorTextFocus"
                 }
             ],
             "commandPalette": [
                 {
-                    "command": "yasosu.openTokenPage",
+                    "command": "yasosubin.openTokenPage",
                     "when": "false"
                 },
                 {
-                    "command": "yasosu.createPasteFromSelection",
-                    "when": "yasosu.signedIn && editorHasSelection && editorTextFocus"
+                    "command": "yasosubin.createPasteFromSelection",
+                    "when": "yasosubin.signedIn && editorHasSelection && editorTextFocus"
                 },
                 {
-                    "command": "yasosu.viewMyPastes",
-                    "when": "yasosu.signedIn"
+                    "command": "yasosubin.viewMyPastes",
+                    "when": "yasosubin.signedIn"
                 }
             ]
         },
         "configuration": {
             "title": "Yasosu",
             "properties": {
-                "yasosu.overrideBasePath": {
+                "yasosubin.overrideBasePath": {
                     "description": "Yasosu Web App URL",
                     "default": "https://yaso.su",
                     "type": "string"
                 },
-                "yasosu.postCreateAction": {
+                "yasosubin.postCreateAction": {
                     "description": "What to do after paste creation",
                     "enumItemLabels": [
                         "Open the paste",
@@ -124,12 +125,12 @@
                     ],
                     "default": "copy"
                 },
-                "yasosu.overrideApiBasePath": {
-                    "markdownDescription": "URL for the backend is usually derived from the [Web App URL](#yasosu.overrideBasePath), but you can override it if needed",
+                "yasosubin.overrideApiBasePath": {
+                    "markdownDescription": "URL for the backend is usually derived from the [Web App URL](#yasosubin.overrideBasePath), but you can override it if needed",
                     "default": "",
                     "type": "string"
                 },
-                "yasosu.expirationTime": {
+                "yasosubin.expirationTime": {
                     "description": "Default expiration time used for pastes",
                     "default": 10080,
                     "type": "number",
@@ -157,22 +158,22 @@
                     {
                         "id": "getToken",
                         "title": "Create an API token",
-                        "description": "Generate a personal API token on the Yasosu website\n[Open Token Page](command:yasosu.openTokenPage)",
+                        "description": "Generate a personal API token on the Yasosu website\n[Open Token Page](command:yasosubin.openTokenPage)",
                         "media": {
                             "image": "images/walkthrough1.png",
                             "altText": "Yasosu Token Generation page screenshot"
                         },
                         "completionEvents": [
-                            "onCommand:yasosu.openTokenPage",
-                            "onContext:yasosu.signedIn"
+                            "onCommand:yasosubin.openTokenPage",
+                            "onContext:yasosubin.signedIn"
                         ]
                     },
                     {
                         "id": "signIn",
                         "title": "Add your token to VS Code",
-                        "description": "Paste your token here to authenticate\n[Open Sign In](command:yasosu.signIn)",
+                        "description": "Paste your token here to authenticate\n[Open Sign In](command:yasosubin.signIn)",
                         "completionEvents": [
-                            "onContext:yasosu.signedIn"
+                            "onContext:yasosubin.signedIn"
                         ],
                         "media": {
                             "image": "images/walkthrough2.png",
