@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { workspace } from 'vscode';
 
-const getConfiguration = () => workspace.getConfiguration('yasosu');
+const getConfiguration = () => workspace.getConfiguration('yasosubin');
 
 const DEFAULT_FRONTEND_BASE_URL = 'https://yaso.su/';
 

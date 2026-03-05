@@ -44,8 +44,8 @@
     "contributes": {
         "authentication": [
             {
-                "id": "yasosu",
-                "label": "Yasosu"
+                "id": "yasosubin",
+                "label": "Yasosu Bin"
             }
         ],
         "commands": [
@@ -152,16 +152,16 @@
         "walkthroughs": [
             {
                 "id": "getStarted",
-                "title": "Get Started with Yasosu",
-                "description": "Connect VS Code to your Yasosu account",
+                "title": "Get Started with Yasosu Bin",
+                "description": "Connect VS Code to your Yasosu Bin account",
                 "steps": [
                     {
                         "id": "getToken",
                         "title": "Create an API token",
-                        "description": "Generate a personal API token on the Yasosu website\n[Open Token Page](command:yasosubin.openTokenPage)",
+                        "description": "Generate a personal API token on the Yasosu Bin website\n[Open Token Page](command:yasosubin.openTokenPage)",
                         "media": {
                             "image": "images/walkthrough1.png",
-                            "altText": "Yasosu Token Generation page screenshot"
+                            "altText": "Yasosu Bin Token Generation page screenshot"
                         },
                         "completionEvents": [
                             "onCommand:yasosubin.openTokenPage",

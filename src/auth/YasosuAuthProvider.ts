@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import { api } from '../apiWrapper';
 import { getProfile } from '../client';
 
-export const PROVIDER_ID = 'yasosu';
-export const PROVIDER_LABEL = 'Yasosu';
+export const PROVIDER_ID = 'yasosubin';
+export const PROVIDER_LABEL = 'Yasosu Bin';
 
 const SESSION_KEY = 'yasosubin.session';
 
@@ -64,8 +64,8 @@ export class YasosuAuthProvider implements vscode.AuthenticationProvider, vscode
         _options: vscode.AuthenticationProviderSessionOptions
     ): Promise<vscode.AuthenticationSession> {
         const token = await vscode.window.showInputBox({
-            title: 'Sign in to Yasosu',
-            prompt: `Paste your Yasosu API token. [Create a token](command:yasosubin.openTokenPage)`,
+            title: 'Sign in to Yasosu Bin',
+            prompt: `Paste your Yasosu Bin API token. [Create a token](command:yasosubin.openTokenPage)`,
             placeHolder: 'ys-pub-✲✲✲',
             password: true,
             ignoreFocusOut: true,
@@ -78,13 +78,13 @@ export class YasosuAuthProvider implements vscode.AuthenticationProvider, vscode
         }
 
         return vscode.window.withProgress(
-            { location: vscode.ProgressLocation.Notification, title: 'Signing in to Yasosu…', cancellable: false },
+            { location: vscode.ProgressLocation.Notification, title: 'Signing in to Yasosu Bin…', cancellable: false },
             async () => {
                 const result = await api(getProfile({ auth: token }));
 
                 if (!result.success) {
-                    vscode.window.showErrorMessage(`Yasosu sign-in failed: ${result.message}`);
-                    throw new Error('Yasosu sign-in response failed');
+                    vscode.window.showErrorMessage(`Yasosu Bin sign-in failed: ${result.message}`);
+                    throw new Error('Yasosu Bin sign-in response failed');
                 }
 
                 const data = result.data;
@@ -93,7 +93,7 @@ export class YasosuAuthProvider implements vscode.AuthenticationProvider, vscode
                 const accountId = await stableIdFromToken(token);
 
                 const newSession: vscode.AuthenticationSession = {
-                    id: `yasosu-${accountId}`,
+                    id: `${PROVIDER_ID}-${accountId}`,
                     accessToken: token,
                     account: { id: accountId, label: displayName },
                     scopes: [...scopes]

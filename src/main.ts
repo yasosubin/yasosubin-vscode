@@ -33,7 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }),
         vscode.workspace.onDidChangeConfiguration((event) => {
-            if (!event.affectsConfiguration('yasosu')) {
+            if (!event.affectsConfiguration('yasosubin')) {
                 return;
             }
 
