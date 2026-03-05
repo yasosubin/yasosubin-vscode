@@ -36,7 +36,9 @@ export function getProfilePastesUrl() {
 export function getApiBaseUrl(): string {
     const configured = getConfiguration().get<string>('overrideApiBasePath', '');
     if (!configured) {
-        return getFrontendBaseUrl();
+        const url = new URL(getFrontendBaseUrl());
+        url.host = `api.${url.host}`;
+        return url.toString();
     }
     return normalizeUrl(configured, getFrontendBaseUrl());
 }
