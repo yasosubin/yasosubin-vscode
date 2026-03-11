@@ -1,3 +1,5 @@
+import type { ApiResult } from '../apiWrapper';
+import type { CreatePasteResponse } from '../client';
 import * as vscode from 'vscode';
 import { api } from '../apiWrapper';
 import { requireYasosuSession } from '../auth';
@@ -40,13 +42,24 @@ async function createPasteFromSelection(editor: vscode.TextEditor) {
         return;
     }
 
-    const result = await api(createPaste({
-        createPasteRequest: {
-            content: joinedSelectedParts,
-            codeLanguage: editor.document.languageId,
-            expirationTime: getExpirationTime()
+    let result!: ApiResult<CreatePasteResponse>;
+    let codeLanguage = editor.document.languageId;
+    for (let i = 0; i < 2; i++) {
+        result = await api(createPaste({
+            createPasteRequest: {
+                content: joinedSelectedParts,
+                codeLanguage,
+                expirationTime: getExpirationTime()
+            }
+        }));
+
+        if (!result.success && result.errorFields?.includes('codeLanguage') === true) {
+            codeLanguage = 'auto';
+            continue;
         }
-    }));
+
+        break;
+    }
 
     if (!result.success) {
         vscode.window.showErrorMessage(`Failed to create Yasosu paste: ${result.message}`);

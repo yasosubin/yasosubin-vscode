@@ -9,6 +9,7 @@ export type ApiSuccess<T> = {
 export type ApiError = {
     success: false;
     message: string;
+    errorFields?: string[];
 };
 
 export type ApiResult<T> = ApiSuccess<T> | ApiError;
@@ -30,11 +31,15 @@ function parseError<Error>(data: Error | undefined): ApiError {
         };
     }
 
+    const errors = result.output.errors;
     return {
         success: false,
-        message: result.output.errors
-            ? Object.values(result.output.errors).map(x => x.message).join(', ')
-            : result.output.title ?? 'Unknown Error'
+        message: errors
+            ? Object.values(errors).map(x => x.message).join(', ')
+            : result.output.title ?? 'Unknown Error',
+        errorFields: errors
+            ?.map(x => x.field)
+            .filter((f): f is string => f != null)
     };
 }
 
