@@ -2,7 +2,7 @@
     "publisher": "yasosubin",
     "name": "yasosubin-vscode",
     "displayName": "Yasosu Bin",
-    "version": "1.0.5",
+    "version": "1.0.7",
     "packageManager": "pnpm@10.11.0",
     "description": "Share code on Yasosu Bin - The pastebin for the modern web",
     "author": {
