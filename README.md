@@ -9,7 +9,7 @@
 This extension allows you to upload code snippets to Yasosu Bin directly from VS Code
 <br>
 <br>
-<a href="https://github.com/yasosubin/yasosubin-vscode">Github</a> | <a href="https://github.com/yasosubin/yasosubin-vscode/issues/new">Report a bug</a> | <a href="https://marketplace.visualstudio.com/items?itemName=yasosubin.yasosubin-vscode">Marketplace</a>
+<a href="https://github.com/yasosubin/yasosubin-vscode">Github</a> | <a href="https://github.com/yasosubin/yasosubin-vscode/issues/new">Report a bug</a> | <a href="https://open-vsx.org/extension/yasosubin/yasosubin-vscode">OpenVSX Marketplace</a>
 
 </p>
 <p align="center" width="100%">
